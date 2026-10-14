@@ -8,22 +8,10 @@ from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from groq import Groq
-from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://aura-skincare-ai-voice-agent-1-rxtq.onrender.com",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ============================================================
 # CONFIGURATION
@@ -32,15 +20,18 @@ app.add_middleware(
 BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / ".env"
 
-# Load local .env when present; Render uses dashboard environment variables.
-if ENV_FILE.is_file():
-    load_dotenv(dotenv_path=ENV_FILE, override=False)
+load_dotenv(dotenv_path=ENV_FILE, override=True)
 
 GROQ_API_KEY = (os.getenv("GROQ_API_KEY") or "").strip()
 GROQ_MODEL = (os.getenv("GROQ_MODEL") or "openai/gpt-oss-20b").strip()
 
+# On Render, environment variables are configured in the service dashboard.
+# A local .env file is optional and is used only for local development.
 if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY is missing. Configure it in Render Environment settings or backend/.env.")
+    raise RuntimeError(
+        "GROQ_API_KEY is missing. Set it in Render Environment Variables "
+        "or in backend/.env for local development."
+    )
 
 client = Groq(
     api_key=GROQ_API_KEY,
@@ -73,6 +64,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://aura-skincare-ai-voice-agent-1-rxtq.onrender.com",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ],
