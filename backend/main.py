@@ -20,16 +20,15 @@ from groq import Groq
 BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / ".env"
 
-load_dotenv(dotenv_path=ENV_FILE, override=True)
+# Load local .env when present; Render uses dashboard environment variables.
+if ENV_FILE.is_file():
+    load_dotenv(dotenv_path=ENV_FILE, override=False)
 
 GROQ_API_KEY = (os.getenv("GROQ_API_KEY") or "").strip()
 GROQ_MODEL = (os.getenv("GROQ_MODEL") or "openai/gpt-oss-20b").strip()
 
-if not ENV_FILE.is_file():
-    raise RuntimeError(f".env file not found: {ENV_FILE}")
-
 if not GROQ_API_KEY:
-    raise RuntimeError(f"GROQ_API_KEY was not loaded from {ENV_FILE}")
+    raise RuntimeError("GROQ_API_KEY is missing. Configure it in Render Environment settings or backend/.env.")
 
 client = Groq(
     api_key=GROQ_API_KEY,
